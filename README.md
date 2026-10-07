@@ -2,7 +2,7 @@
 
 A simple, fast calculator web app with keyboard support, calculation history, and dark and light views. It is a single HTML file with no installation needed.
 
-**Live demo:** https://gkmaurya59.github.io/calculator/
+**Live demo:** https://gkmaurya59.github.io/Calculator/
 
 ## Features
 
