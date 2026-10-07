@@ -34,13 +34,6 @@ The calculator follows your device's dark or light setting. Click the **Dark / L
 
 There is nothing to install and no internet connection is needed. Download `index.html` and open it in any modern browser.
 
-## Deploy on GitHub Pages
-
-1. Create a new public repository and upload `index.html` and this `README.md`.
-2. Go to **Settings, then Pages**.
-3. Set **Source** to **Deploy from a branch**, choose **main** and **/ (root)**, then click **Save**.
-4. After 1 to 2 minutes, your site is live at `https://YOUR-USERNAME.github.io/calculator/`.
-
 ## Built with
 
 HTML, CSS and plain JavaScript in a single file.
