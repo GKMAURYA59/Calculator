@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculator</title>
+<style>
+:root{--bg:#eef1f4;--card:#fff;--ink:#14213d;--mut:#5b6678;--key:#e6eaf0;--op:#d6ecea;--acc:#0b6e69;--accink:#fff;--fn:#f3e3d3;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1624;--card:#18223a;--ink:#e8edf6;--mut:#9aa6bb;--key:#26334f;--op:#1f4b4a;--acc:#4fd1c5;--accink:#0f1624;--fn:#3b3042}}
+:root[data-theme="dark"]{--bg:#0f1624;--card:#18223a;--ink:#e8edf6;--mut:#9aa6bb;--key:#26334f;--op:#1f4b4a;--acc:#4fd1c5;--accink:#0f1624;--fn:#3b3042}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:20px system-ui,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+.wrap{width:100%;max-width:380px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+h1{font-size:18px;margin:0}
+.card{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+#expr{min-height:24px;text-align:right;color:var(--mut);font-size:16px;overflow:hidden;white-space:nowrap}
+#out{text-align:right;font-size:44px;font-weight:700;overflow-x:auto;white-space:nowrap;padding:4px 0 12px}
+#out.err{font-size:22px;color:#c62828}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.keys button{border:0;border-radius:14px;padding:18px 0;font:inherit;font-weight:700;background:var(--key);color:var(--ink);cursor:pointer}
+.keys button:active{transform:scale(.96)}
+.keys .op{background:var(--op)}.keys .fn{background:var(--fn)}.keys .eq{background:var(--acc);color:var(--accink)}.keys .z{grid-column:span 2}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.tb{border:2px solid var(--key);background:none;color:var(--ink);border-radius:8px;padding:6px 12px;font:inherit;font-size:15px;cursor:pointer}
+#hist{margin-top:12px;font-size:15px;color:var(--mut)}#hist div{padding:4px 0;border-top:1px solid var(--key);text-align:right}
+</style></head><body>
+<div class="wrap">
+<div class="top"><h1>Calculator</h1><button class="tb" id="th" aria-label="Switch dark or light view">Dark / Light</button></div>
+<div class="card">
+<div id="expr" aria-live="off"></div><div id="out" role="status" aria-live="polite">0</div>
+<div class="keys" id="keys">
+<button class="fn" data-k="AC">AC</button><button class="fn" data-k="±">±</button><button class="fn" data-k="%">%</button><button class="op" data-k="/">÷</button>
+<button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="*">×</button>
+<button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="-">−</button>
+<button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="op" data-k="+">+</button>
+<button class="z" data-k="0">0</button><button data-k=".">.</button><button class="eq" data-k="=">=</button>
+<button class="fn z" data-k="⌫">⌫ Delete</button><button class="fn z" data-k="CH">Clear history</button>
+</div></div>
+<div id="hist"></div>
+</div>
+<script>
+const SYM={'+':'+','-':'−','*':'×','/':'÷'};
+let cur='0',prev=null,op=null,fresh=false,err=false,hist=[];
+const $=s=>document.querySelector(s);
+const clean=n=>String(+Number(n).toPrecision(12));
+function calc(a,b,o){a=+a;b=+b;return o==='+'?a+b:o==='-'?a-b:o==='*'?a*b:a/b}
+function show(){const o=$('#out');o.textContent=cur;o.className=err?'err':'';
+$('#expr').textContent=op&&!err?`${prev} ${SYM[op]}${fresh?'':' '+cur}`:'';
+$('#hist').innerHTML=hist.slice(0,6).map(h=>`<div>${h}</div>`).join('')}
+function fail(m){cur=m;err=true;prev=null;op=null;fresh=true;show()}
+function key(k){
+if(err&&k!=='AC'&&k!=='CH'){cur='0';err=false}
+if(/^\d$/.test(k)){if(fresh){cur=k;fresh=false}else if(cur.replace(/[-.]/g,'').length<14)cur=cur==='0'?k:cur+k}
+else if(k==='.'){if(fresh){cur='0.';fresh=false}else if(!cur.includes('.'))cur+='.'}
+else if('+-*/'.includes(k)&&k){
+ if(op&&!fresh){const r=calc(prev,cur,op);if(!isFinite(r))return fail("Can't divide by zero");cur=clean(r)}
+ prev=cur;op=k;fresh=true}
+else if(k==='='||k==='Enter'){if(op&&prev!==null){const r=calc(prev,cur,op);if(!isFinite(r))return fail("Can't divide by zero");
+ const res=clean(r);hist.unshift(`${prev} ${SYM[op]} ${cur} = ${res}`);cur=res;op=null;prev=null;fresh=true}}
+else if(k==='AC'){cur='0';prev=null;op=null;fresh=false;err=false}
+else if(k==='±'){if(cur!=='0')cur=cur.startsWith('-')?cur.slice(1):'-'+cur}
+else if(k==='%'){cur=clean(+cur/100);fresh=true}
+else if(k==='⌫'||k==='Backspace'){if(!fresh){cur=cur.length>1&&!(cur.length===2&&cur[0]==='-')?cur.slice(0,-1):'0'}}
+else if(k==='CH'){hist=[]}
+show()}
+$('#keys').addEventListener('click',e=>{const b=e.target.closest('button');if(b)key(b.dataset.k)});
+document.addEventListener('keydown',e=>{const k=e.key;
+if(/^[\d.+\-*\/%]$/.test(k)||k==='Enter'||k==='='||k==='Backspace'){e.preventDefault();key(k==='='?'=':k)}
+else if(k==='Escape'||k==='Delete')key('AC')});
+$('#th').onclick=()=>{const r=document.documentElement;const dark=(r.dataset.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark';r.dataset.theme=dark?'light':'dark'};
+show();
+</script></body></html>
